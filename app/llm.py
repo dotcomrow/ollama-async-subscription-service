@@ -21,12 +21,17 @@ class LLMClient:
         messages: list[dict[str, Any]],
         options: dict[str, Any],
     ) -> dict[str, Any]:
+        # Force non-streaming completion calls and drop stream-only options.
+        payload_options = dict(options or {})
+        payload_options.pop("stream", None)
+        payload_options.pop("stream_options", None)
+
         payload: dict[str, Any] = {
             "model": model,
             "messages": messages,
             "stream": False,
         }
-        payload.update(options or {})
+        payload.update(payload_options)
         payload["stream"] = False
 
         headers: dict[str, str] = {"Content-Type": "application/json"}
@@ -48,6 +53,14 @@ class LLMClient:
                     content = message.get("content")
                     if isinstance(content, str):
                         answer_text = content
+                    elif isinstance(content, list):
+                        parts: list[str] = []
+                        for item in content:
+                            if isinstance(item, dict):
+                                text = item.get("text")
+                                if isinstance(text, str):
+                                    parts.append(text)
+                        answer_text = "".join(parts)
 
         return {
             "answer_text": answer_text,

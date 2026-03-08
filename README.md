@@ -185,9 +185,26 @@ Published to topic `graphql.async.responses.v1` (configurable via `ASYNC_RESPONS
   "request_id": "req-9f7d1e8a",
   "client_id": "user-123",
   "status": "completed",
-  "response_payload": { "result": { "ok": true } },
+  "response_payload": {
+    "answer_text": "Hello from Ollama",
+    "provider": "openai-compatible",
+    "raw": {
+      "id": "chatcmpl-123",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "Hello from Ollama"
+          }
+        }
+      ]
+    }
+  },
   "metadata": { "worker": "billing-service" },
   "completed_at": "2026-03-07T22:14:00Z",
   "expires_at": "2026-03-08T22:14:00Z"
 }
 ```
+
+The worker always calls the LLM endpoint in non-streaming mode (`stream: false`) and publishes one final Kafka response message per request.
