@@ -52,7 +52,11 @@ class KafkaRequestConsumer:
 
     def commit_message(self, message: Any) -> None:
         topic_partition = TopicPartition(message.topic, message.partition)
-        self._consumer.commit({topic_partition: OffsetAndMetadata(message.offset + 1, "")})
+        try:
+            offset_meta = OffsetAndMetadata(message.offset + 1, "", None)
+        except TypeError:
+            offset_meta = OffsetAndMetadata(message.offset + 1, "")
+        self._consumer.commit({topic_partition: offset_meta})
 
     def close(self) -> None:
         self._consumer.close(timeout=10)
