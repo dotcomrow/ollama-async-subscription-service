@@ -257,6 +257,7 @@ class ChatWorker:
                 messages=request["messages"],
                 options=request["options"],
             )
+            response_topic = reply_topic or self._kafka_publisher.default_topic
             message = self._build_response_message(
                 request_id=request_id,
                 client_id=client_id,
@@ -267,8 +268,9 @@ class ChatWorker:
             )
             self._kafka_publisher.publish(request_id, message, topic=reply_topic)
             self._log.info(
-                "response published id=%s topic=%s partition=%s offset=%s",
+                "response published id=%s response_topic=%s source_topic=%s source_partition=%s source_offset=%s",
                 request_id,
+                response_topic,
                 record.topic,
                 record.partition,
                 record.offset,

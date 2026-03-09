@@ -35,6 +35,10 @@ class KafkaResponsePublisher:
         self._topic = settings.async_response_topic
         self._producer = KafkaProducer(**producer_config)
 
+    @property
+    def default_topic(self) -> str:
+        return self._topic
+
     def publish(self, request_id: str, message: dict[str, Any], topic: str | None = None) -> None:
         target_topic = topic or self._topic
         future = self._producer.send(target_topic, key=request_id, value=message)
