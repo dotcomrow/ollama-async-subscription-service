@@ -53,7 +53,7 @@ class KafkaRequestConsumer:
     def commit_message(self, message: Any) -> None:
         topic_partition = TopicPartition(message.topic, message.partition)
         try:
-            offset_meta = OffsetAndMetadata(message.offset + 1, "", None)
+            offset_meta = OffsetAndMetadata(message.offset + 1, "", -1)
         except TypeError:
             offset_meta = OffsetAndMetadata(message.offset + 1, "")
         self._consumer.commit({topic_partition: offset_meta})
