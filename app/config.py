@@ -28,8 +28,6 @@ def _env_int(name: str, default: int, minimum: int = 1) -> int:
 
 @dataclass(frozen=True)
 class Settings:
-    database_url: str
-    async_messages_table: str
     async_request_topic: str
     async_response_topic: str
     response_expires_seconds: int
@@ -37,11 +35,8 @@ class Settings:
     llm_api_key: str | None
     llm_default_model: str
     llm_timeout_seconds: float
-    hasura_action_secret: str | None
     worker_poll_seconds: float
     worker_id: str
-    default_max_attempts: int
-    request_handler_name: str
     request_handler_names: tuple[str, ...]
     kafka_bootstrap_servers: list[str]
     kafka_security_protocol: str
@@ -54,16 +49,6 @@ class Settings:
 
 
 def load_settings() -> Settings:
-    database_url = os.getenv("DATABASE_URL", "").strip()
-    if not database_url:
-        raise RuntimeError("DATABASE_URL is required")
-
-    async_messages_table = os.getenv(
-        "ASYNC_MESSAGES_TABLE", "graphql.client_async_messages"
-    ).strip()
-    if not async_messages_table:
-        raise RuntimeError("ASYNC_MESSAGES_TABLE must not be empty")
-
     async_request_topic = os.getenv(
         "ASYNC_REQUEST_TOPIC", "graphql.async.requests.v1"
     ).strip()
@@ -131,10 +116,6 @@ def load_settings() -> Settings:
     if not llm_default_model:
         raise RuntimeError("LLM_DEFAULT_MODEL must not be empty")
 
-    hasura_action_secret = os.getenv("HASURA_ACTION_SECRET")
-    if hasura_action_secret is not None:
-        hasura_action_secret = hasura_action_secret.strip() or None
-
     request_handler_names_raw = os.getenv(
         "REQUEST_HANDLER_NAMES", "ai-service,ollama,ollama-async-subscription-service"
     ).strip()
@@ -147,13 +128,7 @@ def load_settings() -> Settings:
     if not request_handler_names:
         request_handler_names = ["ai-service"]
 
-    request_handler_name = os.getenv("REQUEST_HANDLER_NAME", request_handler_names[0]).strip().lower()
-    if not request_handler_name:
-        request_handler_name = request_handler_names[0]
-
     return Settings(
-        database_url=database_url,
-        async_messages_table=async_messages_table,
         async_request_topic=async_request_topic,
         async_response_topic=async_response_topic,
         response_expires_seconds=_env_int("ASYNC_RESPONSE_EXPIRES_SECONDS", 86400),
@@ -161,11 +136,8 @@ def load_settings() -> Settings:
         llm_api_key=llm_api_key,
         llm_default_model=llm_default_model,
         llm_timeout_seconds=_env_float("LLM_TIMEOUT_SECONDS", 120.0),
-        hasura_action_secret=hasura_action_secret,
         worker_poll_seconds=_env_float("WORKER_POLL_SECONDS", 1.0),
         worker_id=os.getenv("WORKER_ID", f"{socket.gethostname()}-worker").strip(),
-        default_max_attempts=_env_int("DEFAULT_MAX_ATTEMPTS", 3),
-        request_handler_name=request_handler_name,
         request_handler_names=tuple(request_handler_names),
         kafka_bootstrap_servers=kafka_bootstrap_servers,
         kafka_security_protocol=kafka_security_protocol,
